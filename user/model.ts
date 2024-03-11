@@ -1,7 +1,19 @@
 import { Schema, model } from 'mongoose';
 import { userCollection } from '../configs/configs';
 
-const userSchema = new Schema({
+interface userInterface {
+    _id: any,
+    email: string;
+    firstName: string;
+    lastName: string;
+    password: string;
+    isAdmin: boolean;
+    isVIP: boolean;
+    resetToken: string;
+    resetExpiration: any;
+}
+
+const userSchema = new Schema<userInterface>({
     email: String,
     firstName: String,
     lastName: String,
@@ -10,7 +22,9 @@ const userSchema = new Schema({
         type: Boolean,
         default: false,
     },
-    isAdmin: Boolean
+    isAdmin: Boolean,
+    resetToken: String,
+    resetExpiration: Date
 })
 
 export default model(userCollection, userSchema);
