@@ -72,7 +72,7 @@ export const verifyResetTokenController = async (req: any, res: any) => {
     const token = req.params.token;
     try {
         await verifyResetToken(token);
-        res.status(200).json({message: "Token Verified"});
+        res.status(200).json({message: "Token Verified"}, token);
     } catch (error) {
         if(error instanceof CustomError) {
             res.status(error.statusCode || 500).json({

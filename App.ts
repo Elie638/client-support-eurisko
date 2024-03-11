@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 
 import userRoutes from './user/routes';
+import categoryRoutes from './complaint-category/routes';
 import { dbURL } from './configs/configs';
 
 
@@ -22,5 +23,6 @@ const connectDB = async () => {
 connectDB();
 
 app.use(userRoutes);
+app.use('/category', categoryRoutes);
 
 app.listen(8080);
