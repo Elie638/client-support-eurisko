@@ -9,7 +9,7 @@ export const emailRegistered: error = {
 }
 
 export const invalidCredentials: error = {
-    message: "Your username or password does not match",
+    message: "Your email or password does not match",
     code: 401
 }
 

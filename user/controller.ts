@@ -1,5 +1,5 @@
 import CustomError from "../configs/errors";
-import { signUp } from "./service";
+import { signUp, signIn } from "./service";
 import Joi from "joi";
 import bcrypt from "bcryptjs";
 
@@ -28,6 +28,21 @@ export const signUpController = async (req: any, res: any) => {
     try {
         const user = await signUp(body);
         res.status(200).json({message: "Successfully added user", body});
+    } catch (error) {
+        if(error instanceof CustomError) {
+            res.status(error.statusCode || 500).json({
+                message: error.message || "Internal Server Error",
+                statusCode: error.statusCode || 500
+            });
+        } else res.status(500).json(error);
+    }
+}
+
+export const signInController = async (req: any, res: any) => {
+    let body = req.body;
+    try {
+        const response = await signIn(body);
+        res.status(200).json({message: "Successfully logged in", response});
     } catch (error) {
         if(error instanceof CustomError) {
             res.status(error.statusCode || 500).json({
