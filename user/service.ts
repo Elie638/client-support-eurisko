@@ -5,7 +5,7 @@ import sendgridTransport from 'nodemailer-sendgrid-transport';
 import crypto from 'crypto';
 
 import User from './model';
-import CustomError, { invalidCredentials, emailRegistered } from '../configs/errors';
+import CustomError, { invalidCredentials, emailRegistered, tokenExpired, invalidToken, invalidEmail } from '../configs/errors';
 import { emailApi, jwtsecret } from '../configs/configs';
 
 const transporter = nodemailer.createTransport(sendgridTransport({
@@ -24,6 +24,7 @@ export const signUp = async (req: any) => {
         const error = new CustomError(emailRegistered.message, emailRegistered.code);
         throw error;
     }
+    req.password = await bcrypt.hash(req.password, 12);
     const user = new User(req);
     await user.save();
     return user;
@@ -47,7 +48,7 @@ export const signIn = async (req: any) => {
     return {token, userId}
 }
 
-export const resetPassword = async (req: string) => {
+export const resetPasswordRequest = async (req: string) => {
     const token = await new Promise<string>((resolve, reject) => {
         crypto.randomBytes(32, (err, buffer) => {
             if (err) {
@@ -62,6 +63,57 @@ export const resetPassword = async (req: string) => {
     user.resetToken = token,
     user.resetExpiration = Date.now() + 3600000;
     await user.save();
+    transporter.sendMail({
+        to: req,
+        from: 'testemail9323@gmail.com',
+        subject: 'Password reset',
+        html: `
+            <p>You requested a password reset</p>
+            <p>Click this <a href="http://localhost:8080/reset/${token}">link</a> to set a new password</p>
+        `
+    });
+}
+
+export const verifyResetToken = async (req: string) => {
+    const user = await User.findOne({resetToken: req});
+    if(!user) {
+        const error = new CustomError(invalidToken.message, invalidToken.code);
+        throw error;
+    }
+    if(user.resetExpiration < Date.now()) {
+        const error = new CustomError(tokenExpired.message, tokenExpired.code);
+        throw error;
+    }
+    const userId = user?._id;
+    
+    return userId;
+}
+
+export const resetPassword = async (req: any) => {
+    const pass = req.password;
+    const token = req.token;
+    const userId = await verifyResetToken(token);
+    if(!userId) {
+        const error = new CustomError(tokenExpired.message, tokenExpired.code);
+        throw error;
+    }
+    const hashedPass = await bcrypt.hash(pass, 12);
+    await User.updateOne(
+        { _id: userId },
+        {
+            $unset: { resetToken: 1, resetExpiration: 1 },
+            $set: { password: hashedPass }
+        }
+    );    
+}
+
+export const resendToken = async (req: string) => {
+    const user = await User.findOne({email: req});
+    if(!user) {
+        const error = new CustomError(invalidEmail.message, invalidEmail.code);
+        throw error;
+    }
+    const token =  user.resetToken;
     transporter.sendMail({
         to: req,
         from: 'testemail9323@gmail.com',

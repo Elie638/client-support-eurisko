@@ -13,6 +13,26 @@ export const invalidCredentials: error = {
     code: 401
 }
 
+export const tokenExpired: error = {
+    message: "The token has expired",
+    code: 401
+}
+
+export const invalidToken: error = {
+    message: "The token is invalid",
+    code: 401
+}
+
+export const invalidConfirmPassword = {
+    message: "The password and the confirm password do not match",
+    code: 401
+}
+
+export const invalidEmail = {
+    message: "Invalid Email",
+    code: 401
+}
+
 export default class CustomError extends Error {
     statusCode: number;
   
