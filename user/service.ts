@@ -98,7 +98,6 @@ export const resetPassword = async (req: any) => {
         throw error;
     }
     const oldUserData = await User.findById(userId).select('password');
-    //if oldUserData is null it has already thrown an error therefor no need to handle it
     if((await bcrypt.compare(pass, oldUserData!.password))) {
         const error = new CustomError(samePassword.message, samePassword.code);
         throw error;

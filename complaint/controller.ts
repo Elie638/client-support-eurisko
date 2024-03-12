@@ -38,10 +38,7 @@ export const postComplaintController = async (req: any, res: any) => {
         if (validationError) {
             const errorMessage = validationError.details[0].message;
             const error = new CustomError(errorMessage, 400);
-            return res.status(error.statusCode).json({
-                message: error.message,
-                statusCode: error.statusCode,
-            });
+            throw error;
         }
         const resultComplaint = await postComplaint(complaint);
         res.status(201).json({message: "Posted User Complaint", resultComplaint});
@@ -107,10 +104,7 @@ export const getComplaintDetailsController = async (req: any, res: any) => {
         if (validationError) {
             const errorMessage = validationError.details[0].message;
             const error = new CustomError(errorMessage, 400);
-            return res.status(error.statusCode).json({
-                message: error.message,
-                statusCode: error.statusCode,
-            });
+            throw error;
         }
         const result = await getComplaintDetails(request);
         res.status(200).json({message: "Fetched Complaint Details", result});
@@ -140,10 +134,7 @@ export const deleteComplaintController = async (req: any, res: any) => {
         if (validationError) {
             const errorMessage = validationError.details[0].message;
             const error = new CustomError(errorMessage, 400);
-            return res.status(error.statusCode).json({
-                message: error.message,
-                statusCode: error.statusCode,
-            });
+            throw error;
         }
         await deleteComplaint(request);
         res.status(200).json({message: "Deleted Complaint"});

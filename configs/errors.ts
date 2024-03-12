@@ -58,6 +58,21 @@ export const samePassword = {
     code: 400
 }
 
+export const sameNameCategory = {
+    message: "There exist a category with the same name",
+    code: 400
+}
+
+export const categoryNotFound = {
+    message: "The category was not found",
+    code: 404
+}
+
+export const categoryIdMissing = {
+    message: "The categoryId was not sent",
+    code: 400
+}
+
 export default class CustomError extends Error {
     statusCode: number;
   

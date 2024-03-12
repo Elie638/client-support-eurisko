@@ -148,10 +148,7 @@ export const changePasswordController = async (req: any, res: any) => {
         if (validationError) {
             const errorMessage = validationError.details[0].message;
             const error = new CustomError(errorMessage, 400);
-            return res.status(error.statusCode).json({
-                message: error.message,
-                statusCode: error.statusCode,
-            });
+            throw error;
         }
         if (oldPassword == newPassword) {
             const error = new CustomError(samePassword.message, samePassword.code);
