@@ -6,6 +6,8 @@ import userRoutes from './user/routes';
 import categoryRoutes from './complaint-category/routes';
 import complaintRoutes from './complaint/routes'
 import { dbURL } from './configs/configs';
+import { init } from './socket';
+import { verifyToken } from './middleware/is-auth';
 
 
 const app = express();
@@ -27,4 +29,12 @@ app.use(userRoutes);
 app.use('/category', categoryRoutes);
 app.use('/complaint', complaintRoutes);
 
-app.listen(8080);
+const server = app.listen(8080);
+const io = init(server);
+//the front
+io.sockets.on('connection', function(socket: any) {
+    socket.on('join', function(token: any) {
+        const verifiedToken = verifyToken(token);
+        socket.join(verifiedToken.userId);
+    });
+});

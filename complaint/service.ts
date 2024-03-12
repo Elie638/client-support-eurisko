@@ -1,3 +1,4 @@
+import { getIo } from '../socket';
 import Complaint from './model';
 
 export const postComplaint = async (req: any) => {
@@ -47,5 +48,9 @@ export const updateStatus = async (req: any) => {
     const complaintId = req.complaintId;
     const status = req.status;
     const result = await Complaint.findByIdAndUpdate(complaintId, {status: status}, {new: true});
+    if(result) {
+        const io = getIo();
+        io.to(result.userId).emit('statusUpdate', { result });
+    }
     return result;
 }

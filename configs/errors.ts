@@ -73,6 +73,11 @@ export const categoryIdMissing = {
     code: 400
 }
 
+export const ioNotInit = {
+    message: "The io server is not initialized",
+    code: 500
+}
+
 export default class CustomError extends Error {
     statusCode: number;
   
