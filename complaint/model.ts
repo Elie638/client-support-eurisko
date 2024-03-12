@@ -17,6 +17,7 @@ const complaintSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: userCollection
     }
-})
+}, {timestamps: true}
+)
 
 export default model(complaintCollection, complaintSchema);

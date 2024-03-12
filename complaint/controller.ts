@@ -1,6 +1,6 @@
 import CustomError, { actionNotPerimitted, tokenMissing } from "../configs/errors";
 import { parseToken, verifyToken } from "../middleware/is-auth";
-import { deleteComplaint, filterSearchComplaints, getComplaintDetails, getUserComplaints, postComplaint } from "./service";
+import { deleteComplaint, filterSearchComplaints, getComplaintDetails, getUserComplaints, postComplaint, updateStatus } from "./service";
 import Joi from "joi";
 
 const complaintSchema = Joi.object({
@@ -23,7 +23,11 @@ const filterSearchSchema = Joi.object({
     status: Joi.string().optional().valid('PENDING', 'INPROGRESS', 'RESOLVED', 'REJECTED'),
     page: Joi.number().integer().greater(0).required(),
     itemPerPage: Joi.number().integer().greater(0).required()
-})
+});
+const updateStatusSchema = Joi.object({
+    status: Joi.string().required().valid('PENDING', 'INPROGRESS', 'RESOLVED', 'REJECTED'),
+    complaintId: Joi.string().required()
+});
 
 export const postComplaintController = async (req: any, res: any) => {
     try {
@@ -176,6 +180,36 @@ export const filterSearchComplaintsController = async (req: any, res: any) => {
         }
         const result = await filterSearchComplaints(request);
         res.status(200).json({message: "Results of filter search", result});
+    } catch (error) {
+        if(error instanceof CustomError) {
+            res.status(error.statusCode || 500).json({
+                message: error.message || "Internal Server Error",
+                statusCode: error.statusCode || 500
+            });
+        } else res.status(500).json(error);
+    }
+}
+
+export const updateStatusController = async (req: any, res: any) => {
+    try {
+        const token = parseToken(req);
+        const auth = verifyToken(token);
+        if(!auth.isAdmin) {
+            const error = new CustomError(actionNotPerimitted.message, actionNotPerimitted.code);
+            throw error;
+        }
+        const request = {
+            complaintId: req.body.complaintId,
+            status: req.body.status
+        }
+        const { error: validationError } = updateStatusSchema.validate(request);
+        if (validationError) {
+            const errorMessage = validationError.details[0].message;
+            const error = new CustomError(errorMessage, 400);
+            throw error;
+        }
+        const result = await updateStatus(request);
+        res.status(200).json({message: "Status updated", result})
     } catch (error) {
         if(error instanceof CustomError) {
             res.status(error.statusCode || 500).json({
