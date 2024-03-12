@@ -5,7 +5,7 @@ import sendgridTransport from 'nodemailer-sendgrid-transport';
 import crypto from 'crypto';
 
 import User from './model';
-import CustomError, { invalidCredentials, emailRegistered, tokenExpired, invalidToken, invalidEmail, wrongPassword } from '../configs/errors';
+import CustomError, { invalidCredentials, emailRegistered, tokenExpired, invalidToken, invalidEmail, wrongPassword, samePassword } from '../configs/errors';
 import { emailApi, jwtsecret } from '../configs/configs';
 
 const transporter = nodemailer.createTransport(sendgridTransport({
@@ -95,6 +95,12 @@ export const resetPassword = async (req: any) => {
     const userId = await verifyResetToken(token);
     if(!userId) {
         const error = new CustomError(tokenExpired.message, tokenExpired.code);
+        throw error;
+    }
+    const oldUserData = await User.findById(userId).select('password');
+    //if oldUserData is null it has already thrown an error therefor no need to handle it
+    if((await bcrypt.compare(pass, oldUserData!.password))) {
+        const error = new CustomError(samePassword.message, samePassword.code);
         throw error;
     }
     const hashedPass = await bcrypt.hash(pass, 12);
