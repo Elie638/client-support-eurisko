@@ -27,15 +27,11 @@ export const postComplaintController = async (req: any, res: any) => {
             const error = new CustomError(actionNotPerimitted.message, actionNotPerimitted.code);
             throw error;
         }
-        const title = req.body.title;
-        const body = req.body.body;
-        const categories = req.body.categories;
-        const userId = auth.userId;
         const complaint = {
-            title,
-            body,
-            categories,
-            userId
+            title: req.body.title,
+            body: req.body.body,
+            categoriesId: req.body.categoriesId,
+            userId: auth.userId
         }
         const { error: validationError } = complaintSchema.validate(complaint);
 

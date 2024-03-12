@@ -4,7 +4,7 @@ import { categoryCollection, complaintCollection, userCollection } from '../conf
 const complaintSchema = new Schema({
     title: String,
     body: String,
-    categories: [{
+    categoriesId: [{
         type: Schema.Types.ObjectId,
         ref: categoryCollection
     }],
