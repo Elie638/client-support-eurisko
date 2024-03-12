@@ -1,13 +1,13 @@
 import jwt from 'jsonwebtoken';
 import { jwtsecret } from '../configs/configs';
-import CustomError, { jwtInvalid } from '../configs/errors';
+import CustomError, { jwtInvalid, tokenMissing } from '../configs/errors';
 
 interface DecodedToken {
     userId: string;
     isAdmin: boolean;
 }
 
-const verify = (req: string) => {
+export const verifyToken = (req: string) => {
     let decodedToken;
     try {
         decodedToken = jwt.verify(req, jwtsecret) as DecodedToken;
@@ -23,4 +23,11 @@ const verify = (req: string) => {
     return {userId, isAdmin}
 }
 
-export default verify;
+export const parseToken = (req: any) => {
+    const token = req.get('Authorization').split(' ')[1];
+    if (!token) {
+        const error = new CustomError(tokenMissing.message, tokenMissing.code);
+        throw error;
+    }
+    return token;
+}
