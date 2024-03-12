@@ -1,6 +1,6 @@
 import CustomError, { actionNotPerimitted, tokenMissing } from "../configs/errors";
 import { parseToken, verifyToken } from "../middleware/is-auth";
-import { deleteComplaint, getComplaintDetails, getUserComplaints, postComplaint } from "./service";
+import { deleteComplaint, filterSearchComplaints, getComplaintDetails, getUserComplaints, postComplaint } from "./service";
 import Joi from "joi";
 
 const complaintSchema = Joi.object({
@@ -18,6 +18,12 @@ const detailSchema = Joi.object({
     userId: Joi.string().required(),
     complaintId: Joi.string().required()
 });
+const filterSearchSchema = Joi.object({
+    userId: Joi.string().optional(),
+    status: Joi.string().optional().valid('PENDING', 'INPROGRESS', 'RESOLVED', 'REJECTED'),
+    page: Joi.number().integer().greater(0).required(),
+    itemPerPage: Joi.number().integer().greater(0).required()
+})
 
 export const postComplaintController = async (req: any, res: any) => {
     try {
@@ -62,8 +68,8 @@ export const getUserComplaintsController = async (req: any, res: any) => {
         }
         const request = {
             userId: auth.userId,
-            page: req.query.page,
-            itemPerPage: req.query.itemPerPage
+            page: req.query.page | 1,
+            itemPerPage: req.query.itemPerPage | 2
         }
         const { error: validationError } = paginationSchema.validate(request);
 
@@ -138,6 +144,38 @@ export const deleteComplaintController = async (req: any, res: any) => {
         }
         await deleteComplaint(request);
         res.status(200).json({message: "Deleted Complaint"});
+    } catch (error) {
+        if(error instanceof CustomError) {
+            res.status(error.statusCode || 500).json({
+                message: error.message || "Internal Server Error",
+                statusCode: error.statusCode || 500
+            });
+        } else res.status(500).json(error);
+    }
+}
+
+export const filterSearchComplaintsController = async (req: any, res: any) => {
+    try {
+        const token = parseToken(req);
+        const auth = verifyToken(token);
+        if(!auth.isAdmin) {
+            const error = new CustomError(actionNotPerimitted.message, actionNotPerimitted.code);
+            throw error;
+        }
+        const request = {
+            page: req.query.page | 1,
+            itemPerPage: req.query.itemPerPage | 2,
+            userId: req.query.userId,
+            status: req.query.status
+        }
+        const { error: validationError } = filterSearchSchema.validate(request);
+        if (validationError) {
+            const errorMessage = validationError.details[0].message;
+            const error = new CustomError(errorMessage, 400);
+            throw error;
+        }
+        const result = await filterSearchComplaints(request);
+        res.status(200).json({message: "Results of filter search", result});
     } catch (error) {
         if(error instanceof CustomError) {
             res.status(error.statusCode || 500).json({

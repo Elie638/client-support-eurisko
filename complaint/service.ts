@@ -30,3 +30,18 @@ export const deleteComplaint = async (req: any) => {
     const complaintId = req.complaintId;
     await Complaint.findOneAndDelete({_id: complaintId, userId: userId});
 }
+
+
+export const filterSearchComplaints = async (req: any) => {
+    const { page, itemPerPage, status, userId } = req;
+
+    const query: any = {};
+    if (status) query.status = status;
+    if (userId) query.userId = userId;
+
+    const totalItems = await Complaint.find(query).countDocuments();
+    const complaints = await Complaint.find(query)
+        .skip((page-1) * itemPerPage)
+        .limit(itemPerPage)
+    return({totalItems, complaints});
+}

@@ -39,11 +39,11 @@ export const getCategoriesPaginated = async (req: any) => {
     const page = req.page;
     const itemPerPage = req.itemPerPage;
     const totalItems = await Category.find().countDocuments();
-    const complaints = await Category.find()
+    const categories = await Category.find()
         .skip((page-1) * itemPerPage)
         .limit(itemPerPage)
         .select('name');
-    return({totalItems, complaints});
+    return({totalItems, categories});
 }
 
 export const getCategoryDetails = async (req: string) => {

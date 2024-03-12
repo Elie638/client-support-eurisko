@@ -121,8 +121,8 @@ export const getCategoriesPaginatedController = async (req: any, res: any) => {
             throw error;
         }
         const request = {
-            page: req.query.page,
-            itemPerPage: req.query.itemPerPage
+            page: req.query.page | 1,
+            itemPerPage: req.query.itemPerPage | 2
         }
         const { error: validationError } = paginationSchema.validate(request);
 
