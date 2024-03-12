@@ -2,7 +2,7 @@ import CustomError, { categoryNotFound, sameNameCategory } from '../configs/erro
 import Category from './model';
 
 export const getCategories = async () => {
-    const categories = await Category.find();
+    const categories = await Category.find().select('name');
     return categories;
 }
 
@@ -33,4 +33,20 @@ export const updateCategory = async (req: any) => {
         throw error;
     }
     return result;
+}
+
+export const getCategoriesPaginated = async (req: any) => {
+    const page = req.page;
+    const itemPerPage = req.itemPerPage;
+    const totalItems = await Category.find().countDocuments();
+    const complaints = await Category.find()
+        .skip((page-1) * itemPerPage)
+        .limit(itemPerPage)
+        .select('name');
+    return({totalItems, complaints});
+}
+
+export const getCategoryDetails = async (req: string) => {
+    const complaint = await Category.findById(req);
+    return complaint;
 }
