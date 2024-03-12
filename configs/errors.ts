@@ -48,6 +48,16 @@ export const tokenMissing = {
     code: 400
 }
 
+export const wrongPassword = {
+    message: "The old password you have entered doesn't match",
+    code: 401
+}
+
+export const samePassword = {
+    message: "The new password cannot be the same as the old one",
+    code: 400
+}
+
 export default class CustomError extends Error {
     statusCode: number;
   

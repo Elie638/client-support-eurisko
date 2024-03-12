@@ -1,5 +1,6 @@
-import CustomError, { invalidConfirmPassword } from "../configs/errors";
-import { signUp, signIn, resetPasswordRequest, verifyResetToken, resetPassword, resendToken } from "./service";
+import CustomError, { actionNotPerimitted, invalidConfirmPassword, samePassword } from "../configs/errors";
+import { parseToken, verifyToken } from "../middleware/is-auth";
+import { signUp, signIn, resetPasswordRequest, verifyResetToken, resetPassword, resendToken, changePassword } from "./service";
 import Joi from "joi";
 
 const signUpSchema = Joi.object({
@@ -130,3 +131,44 @@ export const resendTokenController = async (req: any, res: any) => {
         } else res.status(500).json(error);
     }
 } 
+
+export const changePasswordController = async (req: any, res: any) => {
+    try {
+        const token = parseToken(req);
+        const auth = verifyToken(token);
+        if(auth.isAdmin) {
+            const error = new CustomError(actionNotPerimitted.message, actionNotPerimitted.code);
+            throw error;
+        }
+        const userId = auth.userId;
+        const oldPassword = req.body.oldPassword
+        const newPassword = req.body.newPassword;
+        const confirmPassword = req.body.confirmPassword;
+        const { error: validationError } = passSchema.validate(newPassword);
+        if (validationError) {
+            const errorMessage = validationError.details[0].message;
+            const error = new CustomError(errorMessage, 400);
+            return res.status(error.statusCode).json({
+                message: error.message,
+                statusCode: error.statusCode,
+            });
+        }
+        if (oldPassword == newPassword) {
+            const error = new CustomError(samePassword.message, samePassword.code);
+            throw error;
+        }
+        if (newPassword !== confirmPassword) {
+            const error = new CustomError(invalidConfirmPassword.message, invalidConfirmPassword.code);
+            throw error;
+        }
+        await changePassword({oldPassword, newPassword, userId});
+        res.status(200).json({message: "Password Updated"});
+    } catch (error) {
+        if(error instanceof CustomError) {
+            res.status(error.statusCode || 500).json({
+                message: error.message || "Internal Server Error",
+                statusCode: error.statusCode || 500
+            });
+        } else res.status(500).json(error);
+    }
+}

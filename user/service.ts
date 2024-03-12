@@ -5,7 +5,7 @@ import sendgridTransport from 'nodemailer-sendgrid-transport';
 import crypto from 'crypto';
 
 import User from './model';
-import CustomError, { invalidCredentials, emailRegistered, tokenExpired, invalidToken, invalidEmail } from '../configs/errors';
+import CustomError, { invalidCredentials, emailRegistered, tokenExpired, invalidToken, invalidEmail, wrongPassword } from '../configs/errors';
 import { emailApi, jwtsecret } from '../configs/configs';
 
 const transporter = nodemailer.createTransport(sendgridTransport({
@@ -123,4 +123,17 @@ export const resendToken = async (req: string) => {
             <p>Click this <a href="http://localhost:8080/reset/${token}">link</a> to set a new password</p>
         `
     });
+}
+
+export const changePassword = async (req: any) => {
+    const oldPass = req.oldPassword;
+    const newPass = req.newPassword;
+    const userId = req.userId;
+    const existingUser = await User.findById(userId).select('password');
+    if(!(await bcrypt.compare(oldPass, existingUser!.password))) {
+        const error = new CustomError(wrongPassword.message, wrongPassword.code);
+        throw error;
+    }
+    const hashedPass = await bcrypt.hash(newPass, 12);
+    await User.findByIdAndUpdate(userId, {password: hashedPass})
 }
