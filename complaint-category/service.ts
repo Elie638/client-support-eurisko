@@ -28,10 +28,6 @@ export const updateCategory = async (req: any) => {
     const categoryId = req.categoryId;
     const updatedCategory = req.updatedCategory;
     const result = await Category.findByIdAndUpdate(categoryId, updatedCategory, {new: true});
-    if(!result) {
-        const error = new CustomError(categoryNotFound.message, categoryNotFound.code);
-        throw error;
-    }
     return result;
 }
 
