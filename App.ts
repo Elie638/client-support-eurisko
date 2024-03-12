@@ -4,6 +4,7 @@ import bodyParser from 'body-parser';
 
 import userRoutes from './user/routes';
 import categoryRoutes from './complaint-category/routes';
+import complaintRoutes from './complaint/routes'
 import { dbURL } from './configs/configs';
 
 
@@ -24,5 +25,6 @@ connectDB();
 
 app.use(userRoutes);
 app.use('/category', categoryRoutes);
+app.use('/complaint', complaintRoutes);
 
 app.listen(8080);

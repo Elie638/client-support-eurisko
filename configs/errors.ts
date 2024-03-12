@@ -33,6 +33,21 @@ export const invalidEmail = {
     code: 401
 }
 
+export const jwtInvalid = {
+    message: "Failed to authenticate token",
+    code: 401
+}
+
+export const actionNotPerimitted = {
+    message: "You do not have permission to execute this action",
+    code: 401
+}
+
+export const tokenMissing = {
+    message: "The validation token is missing",
+    code: 400
+}
+
 export default class CustomError extends Error {
     statusCode: number;
   
