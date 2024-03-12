@@ -7,9 +7,7 @@ export const postComplaint = async (req: any) => {
 }
 
 export const getUserComplaints = async (req: any) => {
-    const userId = req.userId;
-    const page = req.page;
-    const itemPerPage = req.itemPerPage;
+    const { userId, page, itemPerPage } = req;
     const totalItems = await Complaint.find({userId: userId}).countDocuments();
     const complaints = await Complaint.find({userId: userId})
         .skip((page-1) * itemPerPage)

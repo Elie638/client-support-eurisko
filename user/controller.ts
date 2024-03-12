@@ -15,18 +15,15 @@ const signUpSchema = Joi.object({
 const passSchema = Joi.string().min(8).required();
 
 export const signUpController = async (req: any, res: any) => {
-    let body = req.body;
-    const { error: validationError } = signUpSchema.validate(body);
-
-    if (validationError) {
-        const errorMessage = validationError.details[0].message;
-        const error = new CustomError(errorMessage, 400);
-        return res.status(error.statusCode).json({
-            message: error.message,
-            statusCode: error.statusCode,
-        });
-    }
     try {
+        const body = req.body;
+        const { error: validationError } = signUpSchema.validate(body);
+
+        if (validationError) {
+            const errorMessage = validationError.details[0].message;
+            const error = new CustomError(errorMessage, 400);
+            throw error;
+        }
         const user = await signUp(body);
         res.status(200).json({message: "Successfully added user", body});
     } catch (error) {
@@ -40,8 +37,8 @@ export const signUpController = async (req: any, res: any) => {
 }
 
 export const signInController = async (req: any, res: any) => {
-    let body = req.body;
     try {
+        const body = req.body;
         const response = await signIn(body);
         res.status(200).json({message: "Successfully logged in", response});
     } catch (error) {
@@ -55,8 +52,8 @@ export const signInController = async (req: any, res: any) => {
 }
 
 export const resetPasswordRequestController = async (req: any, res: any) => {
-    let email = req.body.email;
     try {
+        const email = req.body.email;
         await resetPasswordRequest(email);
         res.status(200).json({message: "Email sent"});
     } catch (error) {
@@ -70,8 +67,8 @@ export const resetPasswordRequestController = async (req: any, res: any) => {
 }
 
 export const verifyResetTokenController = async (req: any, res: any) => {
-    const token = req.params.token;
     try {
+        const token = req.params.token;
         await verifyResetToken(token);
         res.status(200).json({message: "Token Verified"}, token);
     } catch (error) {
@@ -85,26 +82,18 @@ export const verifyResetTokenController = async (req: any, res: any) => {
 }
 
 export const resetPasswordController = async (req: any, res: any) => {
-    const password = req.body.password;
-    const confirmPassword = req.body.confirmPassword;
-    const token = req.body.token
-    const { error: validationError } = passSchema.validate(password);
-    if (validationError) {
-        const errorMessage = validationError.details[0].message;
-        const error = new CustomError(errorMessage, 400);
-        return res.status(error.statusCode).json({
-            message: error.message,
-            statusCode: error.statusCode,
-        });
-    }
-    if (password !== confirmPassword) {
-        const error = new CustomError(invalidConfirmPassword.message, invalidConfirmPassword.code);
-        return res.status(error.statusCode).json({
-            message: error.message,
-            statusCode: error.statusCode,
-        });
-    }
     try {
+        const { password, confirmPassword, token } = req.body;
+        const { error: validationError } = passSchema.validate(password);
+        if (validationError) {
+            const errorMessage = validationError.details[0].message;
+            const error = new CustomError(errorMessage, 400);
+            throw error
+        }
+        if (password !== confirmPassword) {
+            const error = new CustomError(invalidConfirmPassword.message, invalidConfirmPassword.code);
+            throw error;
+        }
         await resetPassword({password, token});
         res.status(200).json({message: "Password Updated"});
     } catch (error) {
@@ -118,8 +107,8 @@ export const resetPasswordController = async (req: any, res: any) => {
 }
 
 export const resendTokenController = async (req: any, res: any) => {
-    const email = req.email;
     try {
+        const email = req.email;
         await resendToken(email);
         res.status(200).json({message: "Token Resent"});
     } catch (error) {
@@ -141,9 +130,7 @@ export const changePasswordController = async (req: any, res: any) => {
             throw error;
         }
         const userId = auth.userId;
-        const oldPassword = req.body.oldPassword
-        const newPassword = req.body.newPassword;
-        const confirmPassword = req.body.confirmPassword;
+        const { oldPassword, newPassword, confirmPassword} = req.body;
         const { error: validationError } = passSchema.validate(newPassword);
         if (validationError) {
             const errorMessage = validationError.details[0].message;

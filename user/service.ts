@@ -59,7 +59,10 @@ export const resetPasswordRequest = async (req: string) => {
         });
     });
     const user = await userByEmail(req);
-    if(!user) return;
+    if(!user) {
+        const error = new CustomError(invalidEmail.message, invalidEmail.code);
+        throw error;
+    }
     user.resetToken = token,
     user.resetExpiration = Date.now() + 3600000;
     await user.save();
@@ -131,9 +134,7 @@ export const resendToken = async (req: string) => {
 }
 
 export const changePassword = async (req: any) => {
-    const oldPass = req.oldPassword;
-    const newPass = req.newPassword;
-    const userId = req.userId;
+    const { oldPass, newPass, userId } = req;
     const existingUser = await User.findById(userId).select('password');
     if(!(await bcrypt.compare(oldPass, existingUser!.password))) {
         const error = new CustomError(wrongPassword.message, wrongPassword.code);
